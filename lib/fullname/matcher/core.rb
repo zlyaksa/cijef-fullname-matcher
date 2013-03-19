@@ -88,9 +88,11 @@ module Fullname::Matcher
           # 2.1 fuzzy match: if middlename in DB is NULL, it matches
           match_list_with_middlename = match_list.select{ |r| r.send(@mapping[:middle]).nil? }
           return match_list_with_middlename if match_list_with_middlename.size > 0
+          # clear match list if don't match middlename
+          match_list = []
         else
           # 2.2 fuzzy match: assume all matches since name[:middle] is NULL
-          return match_list if match_list.size > 0
+          return match_list
         end        
       end
       
