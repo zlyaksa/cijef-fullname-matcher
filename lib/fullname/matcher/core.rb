@@ -71,11 +71,10 @@ module Fullname::Matcher
       
       if match_list.size > 0
         # 1. exactly match
-        match_list_with_middlename = match_list.select do |r|
-          r_middle_name = r.send(@mapping[:middle])
-          r_middle_name.to_s.downcase.strip == name[:middle].to_s.downcase.strip
+        exact_match_list = match_list.select do |r|
+          compare_without_dot(r.send(@mapping[:middle]), name[:middle]) && compare_without_dot(r.send(@mapping[:suffix]), name[:suffix])
         end
-        return match_list_with_middlename if match_list_with_middlename.size > 0
+        return exact_match_list if exact_match_list.size > 0
         
         # 2. if name[:middle] is not NULL, regexp match
         if name[:middle]
@@ -127,7 +126,7 @@ module Fullname::Matcher
       unless @options[:skip_match_suffix]
         s1 = n1.suffix
         s2 = n2.suffix
-        return false  if s1 && s2 && s1.gsub('.', '').downcase.strip != s2.gsub('.', '').downcase.strip
+        return false  if s1 && s2 && compare_without_dot(s1, s2) == false
       end
       
       return false if !abbr_match?(f1, f2)
@@ -158,23 +157,19 @@ module Fullname::Matcher
       matched_list = @table.all(:conditions => queries)
       unless @options[:skip_match_suffix]
         
-        suffix = name[:suffix] ? name[:suffix].gsub('.', '').downcase.strip : nil
-        
         # exactly match suffix
-        matched_list_with_suffix = matched_list.select{|r|
-          r_suffix = r.send(@mapping[:suffix])
-          r_suffix.to_s.downcase.strip == suffix.to_s
-        }
+        matched_list_with_suffix = matched_list.select{|r| compare_without_dot(r.send(@mapping[:suffix]), name[:suffix]) }
         return matched_list_with_suffix if matched_list_with_suffix.size > 0
         
         # fuzzy match suffix( NULL matches NON-NULL )
-        return matched_list.select{|r|
-          r_suffix = r.send(@mapping[:suffix])
-          r_suffix.nil? || suffix.nil? || suffix == r_suffix.gsub('.', '').downcase.strip
-        }
+        return matched_list.select{|r| r.send(@mapping[:suffix]).to_s.strip.empty? || name[:suffix].nil? }
         
       end
       return matched_list
+    end
+
+    def compare_without_dot(str1, str2)
+      [str1, str2].map{|s| s.to_s.gsub('.', '').downcase.strip}.uniq.size == 1
     end
   
     def build_middlename_regexp(middlename)
