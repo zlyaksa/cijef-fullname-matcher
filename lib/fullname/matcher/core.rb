@@ -158,8 +158,10 @@ module Fullname::Matcher
       unless @options[:skip_match_suffix]
         
         # exactly match suffix
-        matched_list_with_suffix = matched_list.select{|r| compare_without_dot(r.send(@mapping[:suffix]), name[:suffix]) }
-        return matched_list_with_suffix if matched_list_with_suffix.size > 0
+        if name[:suffix].present?
+          matched_list_with_suffix = matched_list.select{|r| compare_without_dot(r.send(@mapping[:suffix]), name[:suffix]) }
+          return matched_list_with_suffix if matched_list_with_suffix.size > 0
+        end
         
         # fuzzy match suffix( NULL matches NON-NULL )
         return matched_list.select{|r| r.send(@mapping[:suffix]).to_s.strip.empty? || name[:suffix].nil? }
