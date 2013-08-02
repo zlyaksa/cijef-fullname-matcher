@@ -144,17 +144,27 @@ module Fullname::Matcher
     private
   
     def match_first_last_and_suffix(name)
-      conditions  = []
-      queries     = []
+      conditions        = []
+      queries           = []
+      firstname_filter  = nil
       conditions << '(' + @condition + ')' if @condition
       queries    << '(placeholder)'
-      conditions << "(#{@mapping[:first]} = ? OR #{@mapping[:first]} REGEXP ?)"
-      queries    << name[:first]
-      queries    << '^' + name[:first][0].chr + '([.]?' + (name[:first] =~ /^[a-z]\.?$/i ? '|[a-z]+' : '') + ')$'
       conditions << "#{@mapping[:last]} = ?"
       queries    << name[:last]
+      # if first name is abbreviation, fetch all firstnames then filter with Ruby regexp
+      if name[:first] =~ /^[a-z]\.?$/i
+        firstname_filter = %r{^(#{Regexp.escape(name[:first])}|#{name[:first][0].chr}\.?)$}i
+      # otherwise search directly in database, because search with regexp in DB won't use indexer
+      else
+        conditions << "(#{@mapping[:first]} IN (?, ?, ?))"
+        queries    << name[:first]
+        queries    << name[:first][0].chr
+        queries    << name[:first][0].chr + '.'
+      end
       queries[0] = conditions.join(' AND ')
-      matched_list = @table.all(:conditions => queries)
+      matched_list = @table.all(:conditions => queries)     
+      matched_list.delete_if{|r| r.send(@mapping[:first]) =~ firstname_filter} if firstname_filter
+
       unless @options[:skip_match_suffix]
         
         # exactly match suffix
