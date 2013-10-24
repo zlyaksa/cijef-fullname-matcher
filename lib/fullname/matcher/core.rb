@@ -153,7 +153,7 @@ module Fullname::Matcher
       queries    << name[:last]
       # if first name is abbreviation, fetch all firstnames then filter with Ruby regexp
       if name[:first] =~ /^[a-z]\.?$/i
-        firstname_filter = %r{^(#{Regexp.escape(name[:first])}|#{name[:first][0].chr}\.?)$}i
+        firstname_filter = %r{^#{name[:first][0].chr}.*}i
       # otherwise search directly in database, because search with regexp in DB won't use indexer
       else
         conditions << "(#{@mapping[:first]} IN (?, ?, ?))"
@@ -163,7 +163,7 @@ module Fullname::Matcher
       end
       queries[0] = conditions.join(' AND ')
       matched_list = @table.all(:conditions => queries)     
-      matched_list.delete_if{|r| r.send(@mapping[:first]) =~ firstname_filter} if firstname_filter
+      matched_list.delete_if{|r| r.send(@mapping[:first]) !~ firstname_filter} if firstname_filter
 
       unless @options[:skip_match_suffix]
         
