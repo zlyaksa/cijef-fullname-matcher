@@ -162,7 +162,7 @@ module Fullname::Matcher
         queries    << name[:first][0].chr + '.'
       end
       queries[0] = conditions.join(' AND ')
-      matched_list = @table.all(:conditions => queries)     
+      matched_list = @table.where(queries).to_a
       matched_list.delete_if{|r| r.send(@mapping[:first]) !~ firstname_filter} if firstname_filter
 
       unless @options[:skip_match_suffix]
