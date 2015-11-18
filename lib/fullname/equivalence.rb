@@ -1245,13 +1245,15 @@ module Fullname
         hash_table[b] ||= []
         hash_table[b]  << a unless hash_table[b].include?(a)
       end
+      # freeze values
+      hash_table.each { |k, v| v.freeze }
       NAME_EQUIVALENCE_HASH = hash_table
       NAME_EQUIVALENCE_HASH.freeze
     end
     # complete building dictionary
     
     def get_name_equivalence(name)
-      NAME_EQUIVALENCE_HASH[name.downcase]
+      NAME_EQUIVALENCE_HASH[name.downcase].dup
     end
     
     extend self
