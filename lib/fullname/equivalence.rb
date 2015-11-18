@@ -1081,6 +1081,7 @@ module Fullname
     Sheridan                      	Dan
     Sheridan                      	Danny
     Sheridan                      	Sher
+    Sheryl                          Sherry
     Shirley                       	Lee
     Shirley                       	Sherry
     Shirley                       	Shirl
