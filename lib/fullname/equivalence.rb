@@ -1254,7 +1254,8 @@ module Fullname
     # complete building dictionary
     
     def get_name_equivalence(name)
-      NAME_EQUIVALENCE_HASH[name.downcase].dup
+      list = NAME_EQUIVALENCE_HASH[name.downcase] || []
+      list.dup
     end
     
     extend self
